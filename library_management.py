@@ -1,3 +1,6 @@
+import csv
+import os
+
 class Book:
     def __init__(self, book_id, title, author):
         self.book_id = book_id
@@ -15,37 +18,44 @@ class Book:
 
 library = []
 
-
 def load_data():
+    if not os.path.exists("library.txt"):
+        return
     try:
-        with open("library.txt") as f:
-            for line in f:
-                line = line.strip()
-                if not line:          
-                    continue
-                parts = line.split(",")
-                if len(parts) != 4:  
-                    continue
-                bid, title, author, issued = parts
-                b = Book(int(bid), title, author)
-                b.issued = issued == "True"
-                library.append(b)
-    except FileNotFoundError:
-        pass
-
+        with open("library.txt", "r", newline='', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) != 4:
+                    continue        
+                bid, title, author, issued = row
+                bid = bid.strip()
+                title = title.strip()
+                author = author.strip()
+                issued = issued.strip()
+                try:
+                    b = Book(int(bid), title, author)
+                    b.issued = (issued.lower() == "true")
+                    library.append(b)
+                except ValueError:
+                    continue          
+    except Exception as e:
+        print(f"Error loading data: {e}")
 
 def save_data():
-    with open("library.txt", "w") as f:
-        for b in library:
-            f.write(f"{b.book_id},{b.title},{b.author},{b.issued}\n")
-
+    try:
+        with open("library.txt", "w", newline='', encoding='utf-8') as f:
+            writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+            for b in library:
+                writer.writerow([b.book_id, b.title, b.author, str(b.issued)])
+        print("Data saved.")
+    except Exception as e:
+        print(f"Error saving data: {e}")
 
 def find(bid):
     for b in library:
         if b.book_id == bid:
             return b
     return None
-
 
 def add():
     try:
@@ -63,14 +73,12 @@ def add():
     except ValueError:
         print("Invalid ID – please enter a number.")
 
-
-def display():
+def display_all():
     if not library:
         print("No books available.")
         return
     for book in library:
         book.display()
-
 
 def search_id():
     try:
@@ -82,7 +90,6 @@ def search_id():
             print("Not found")
     except ValueError:
         print("Invalid ID – please enter a number.")
-
 
 def search_title():
     t = input("Title: ").strip().lower()
@@ -97,7 +104,6 @@ def search_title():
     if not found:
         print("Not found")
 
-
 def search_author():
     a = input("Author: ").strip().lower()
     if not a:
@@ -110,7 +116,6 @@ def search_author():
             found = True
     if not found:
         print("Not found")
-
 
 def issue():
     try:
@@ -125,8 +130,7 @@ def issue():
         print("Already issued")
     else:
         b.issued = True
-        print("Issued")
-
+        print(f"Issued to {bid}")           
 
 def ret():
     try:
@@ -142,7 +146,6 @@ def ret():
     else:
         b.issued = False
         print("Returned")
-
 
 def update():
     try:
@@ -174,7 +177,6 @@ def update():
     else:
         print("Invalid choice")
 
-
 def delete():
     try:
         bid = int(input("ID: ").strip())
@@ -192,7 +194,6 @@ def delete():
     else:
         print("Not found")
 
-
 def count():
     total = len(library)
     issued = sum(1 for b in library if b.issued)
@@ -200,69 +201,68 @@ def count():
     print(f"Issued Books    : {issued}")
     print(f"Available Books : {total - issued}")
 
-
 def sort_title():
     for b in sorted(library, key=lambda x: x.title.lower()):
         b.display()
-
 
 def sort_author():
     for b in sorted(library, key=lambda x: x.author.lower()):
         b.display()
 
 
-# Main program
-load_data()
+def main():
+    load_data()
+    while True:
+        print("\n===== LIBRARY MANAGEMENT SYSTEM =====")
+        print("1. Add Book")
+        print("2. Display Books")
+        print("3. Search by ID")
+        print("4. Search by Title")
+        print("5. Search by Author")
+        print("6. Issue Book")
+        print("7. Return Book")
+        print("8. Update Book")
+        print("9. Delete Book")
+        print("10. Count Books")
+        print("11. Sort by Title")
+        print("12. Sort by Author")
+        print("13. Save Data")
+        print("14. Exit")
 
-while True:
-    print("\n===== LIBRARY MANAGEMENT SYSTEM =====")
-    print("1. Add Book")
-    print("2. Display Books")
-    print("3. Search by ID")
-    print("4. Search by Title")
-    print("5. Search by Author")
-    print("6. Issue Book")
-    print("7. Return Book")
-    print("8. Update Book")
-    print("9. Delete Book")
-    print("10. Count Books")
-    print("11. Sort by Title")
-    print("12. Sort by Author")
-    print("13. Save Data")
-    print("14. Exit")
+        choice = input("\nEnter Your Choice: ").strip()
 
-    choice = input("\nEnter Your Choice: ").strip()
+        if choice == "1":
+            add()
+        elif choice == "2":
+            display_all()
+        elif choice == "3":
+            search_id()
+        elif choice == "4":
+            search_title()
+        elif choice == "5":
+            search_author()
+        elif choice == "6":
+            issue()
+        elif choice == "7":
+            ret()
+        elif choice == "8":
+            update()
+        elif choice == "9":
+            delete()
+        elif choice == "10":
+            count()
+        elif choice == "11":
+            sort_title()
+        elif choice == "12":
+            sort_author()
+        elif choice == "13":
+            save_data()
+        elif choice == "14":
+            save_data()
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please select a number from 1 to 14.")
 
-    if choice == "1":
-        add()
-    elif choice == "2":
-        display()
-    elif choice == "3":
-        search_id()
-    elif choice == "4":
-        search_title()
-    elif choice == "5":
-        search_author()
-    elif choice == "6":
-        issue()
-    elif choice == "7":
-        ret()
-    elif choice == "8":
-        update()
-    elif choice == "9":
-        delete()
-    elif choice == "10":
-        count()
-    elif choice == "11":
-        sort_title()
-    elif choice == "12":
-        sort_author()
-    elif choice == "13":
-        save_data()
-        print("Data saved.")
-    elif choice == "14":
-        save_data()
-        print("Goodbye!")
-        break
-    else:
-        print("Invalid choice. Please select a number from 1 to 14.")
+if __name__ == "__main__":
+    main()
