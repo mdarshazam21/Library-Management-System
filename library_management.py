@@ -21,10 +21,10 @@ def load_data():
         with open("library.txt") as f:
             for line in f:
                 line = line.strip()
-                if not line:          # skip empty lines
+                if not line:          
                     continue
                 parts = line.split(",")
-                if len(parts) != 4:   # skip malformed lines
+                if len(parts) != 4:  
                     continue
                 bid, title, author, issued = parts
                 b = Book(int(bid), title, author)
